@@ -1,33 +1,19 @@
 import React from "react";
 
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Button from "@material-ui/core/Button";
-import Paper from "@material-ui/core/Paper";
-import TextField from "@material-ui/core/TextField";
-import { makeStyles } from "@material-ui/core/styles";
-import { ButtonStyles } from "../../../css/theme";
-
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    elevation: 15,
-    padding: theme.spacing(3),
-  },
-  input: {
-    minWidth: 250,
-  },
-}));
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import TextField from "@mui/material/TextField";
 
 const Confirmation = (props) => {
-  const classes = useStyles();
-
   const {
     values: { firstName, lastName, email, careLevel },
   } = props;
 
   return (
-    <Paper className={classes.paper}>
+    <Paper elevation={15}>
       <List>
         <ListItem>
           <ListItemText primary="First Name" secondary={firstName} />
@@ -50,9 +36,9 @@ const Confirmation = (props) => {
               inputProps: {
                 max: 5,
                 min: 1,
-                className: classes.input,
               },
             }}
+            sx={{ width: 240 }}
           />
         </ListItem>
       </List>
@@ -60,7 +46,7 @@ const Confirmation = (props) => {
         color="secondary"
         variant="contained"
         onClick={() => props.prevStep()}
-        style={ButtonStyles.button}
+        sx={{ padding: 1 }}
       >
         Back
       </Button>
@@ -68,7 +54,7 @@ const Confirmation = (props) => {
       <Button
         color="primary"
         variant="contained"
-        style={ButtonStyles.button}
+        sx={{ padding: 1 }}
         type="submit"
       >
         Confirm & Continue

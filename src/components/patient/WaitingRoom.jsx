@@ -1,56 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Modal from "@material-ui/core/Modal";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
+import { useTheme } from "@mui/styles";
+import Modal from "@mui/material/Modal";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 import TitleBar from "../TitleBar";
 import Patient from "./Patient";
 import Rooms from "../../components/rooms/Rooms";
-import Button from "@material-ui/core/Button";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
-import Typography from "@material-ui/core/Typography";
+import Button from "@mui/material/Button";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import Typography from "@mui/material/Typography";
 
 import { patientState, listWaitingPatients } from "../../redux/patientSlice";
 import { roomState, roomAdmission } from "../../redux/roomSlice";
 
 import ListComponent from "../../components/ListComponent";
-import clsx from "clsx";
 import MaxHeap from "../../utils/heap/maxHeap";
-
-const useStyles = makeStyles((theme) => ({
-  category: {
-    textTransform: "uppercase",
-  },
-  confirm: {
-    marginLeft: theme.spacing(6),
-  },
-  modal: {
-    width: "80%",
-    margin: "auto",
-  },
-  root: {
-    backgroundColor: theme.palette.background.paper,
-    elevation: 15,
-  },
-  roomInput: {
-    minWidth: 150,
-  },
-  tabs: {
-    borderRight: `1px solid ${theme.palette.divider}`,
-  },
-  viewBtn: {
-    margin: theme.spacing(2),
-  },
-}));
 
 const WaitingRoom = () => {
   const dispatch = useDispatch();
-  const classes = useStyles();
+  const theme = useTheme();
   const { rooms } = useSelector(roomState);
   const { waitingPatients } = useSelector(patientState);
   const [patients, setPatients] = useState([]);
@@ -65,14 +37,14 @@ const WaitingRoom = () => {
   const mh = new MaxHeap();
 
   const getNextPatient = () => {
-    const nextPatient = mh.poll()
+    const nextPatient = mh.poll();
     setSelectedId(nextPatient.patient_id);
     setValues({ ...values, patient_id: nextPatient.patient_id });
   };
 
-  useEffect(() => {
-    dispatch(listWaitingPatients());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(listWaitingPatients());
+  // }, []);
 
   useEffect(() => {
     setPatients(waitingPatients);
@@ -106,7 +78,7 @@ const WaitingRoom = () => {
     };
     dispatch(roomAdmission(data));
     setSelectedId(null);
-    setValues({patient_id: null, roomAssigned: ""})
+    setValues({ patient_id: null, roomAssigned: "" });
     dispatch(listWaitingPatients());
   };
 
@@ -118,34 +90,42 @@ const WaitingRoom = () => {
         <Grid
           container
           direction="row"
-          justify="space-evenly"
+          justifyContent="space-evenly"
           alignItems="center"
         >
           <Grid item>
             <Button
-              className={clsx([classes.category, classes.viewBtn])}
               color="secondary"
               size="large"
               variant="contained"
               onClick={() => setViewOccupancy(!viewOccupancy)}
+              sx={{
+                textTransform: "uppercase",
+                margin: 2,
+              }}
             >
               view Occupancies
             </Button>
           </Grid>
 
           <Grid item>
-            <Typography variant="h5" className={classes.category}>
+            <Typography
+              variant="h5"
+              sx={{
+                textTransform: "uppercase",
+              }}
+            >
               assign patient to room:
             </Typography>
           </Grid>
 
           <Grid item>
-            <FormControl variant="outlined" className={classes.roomSelect}>
-              <InputLabel id="select" className={classes.category}>
+            <FormControl variant="outlined" sx={{ minWidth: 250 }}>
+              <InputLabel id="select" sx={{ textTransform: "uppercase" }}>
                 room
               </InputLabel>
               <Select
-                className={classes.roomInput}
+                sx={{ minWidth: 250 }}
                 labelId="select"
                 id="select"
                 value={values.roomAssigned}
@@ -167,7 +147,7 @@ const WaitingRoom = () => {
 
           <Grid item>
             <Button
-              className={classes.category}
+              sx={{ textTransform: "uppercase" }}
               color="primary"
               size="large"
               variant="contained"
@@ -179,8 +159,18 @@ const WaitingRoom = () => {
           </Grid>
         </Grid>
 
-        <Paper className={classes.root}>
-          <Grid container direction="row" justify="center" alignItems="center">
+        <Paper
+          sx={{
+            backgroundColor: theme.palette.background.paper,
+            elevation: 15,
+          }}
+        >
+          <Grid
+            container
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+          >
             <Grid item xs={2}>
               <ListComponent patients={patients} selectedId={selectedId} />
             </Grid>
@@ -189,12 +179,12 @@ const WaitingRoom = () => {
               <Grid
                 container
                 direction="column"
-                justify="center"
+                justifyContent="center"
                 alignItems="center"
               >
                 <Grid item>
                   <Button
-                    className={clsx([classes.category, classes.viewBtn])}
+                    sx={{ textTransform: "uppercase", margin: 2 }}
                     color="primary"
                     disabled={values.patient_id}
                     size="large"
@@ -205,20 +195,20 @@ const WaitingRoom = () => {
                   </Button>
                 </Grid>
 
-                <Patient patient={selectedPatient} selectedId={selectedId} />
+                {/* <Patient patient={selectedPatient} selectedId={selectedId} /> */}
               </Grid>
             </Grid>
           </Grid>
         </Paper>
       </form>
 
-      <Modal
-        className={classes.modal}
+      {/* <Modal
+        sx={{ width: "80%", margin: "auto" }}
         open={viewOccupancy}
         onClose={() => setViewOccupancy(false)}
       >
         <Rooms />
-      </Modal>
+      </Modal> */}
     </>
   );
 };

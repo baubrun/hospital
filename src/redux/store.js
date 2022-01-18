@@ -1,12 +1,12 @@
-import { configureStore } from '@reduxjs/toolkit';
-import userReducer from "./userSlice"
-import roomsReducer from "./roomSlice"
-import patientReducer from "./patientSlice"
+import { configureStore } from "@reduxjs/toolkit";
+import layoutReducer from "./layoutSlice";
+import roomsReducer from "./roomSlice";
+import patientReducer from "./patientSlice";
 
-export default configureStore({
+export const store = configureStore({
   reducer: {
-    user: userReducer,
-    rooms: roomsReducer,
+    layout: layoutReducer,
     patients: patientReducer,
+    rooms: roomsReducer,
   },
 });
