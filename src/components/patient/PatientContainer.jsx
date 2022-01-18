@@ -1,31 +1,11 @@
 import React from "react";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
-
-
-const useStyles = makeStyles((theme) => ({
-    root: {
-      backgroundColor: theme.palette.background.paper,
-      elevation: 15,
-    },
-    tabs: {
-      borderRight: `1px solid ${theme.palette.divider}`,
-    },
-    modal: {
-      width: "80%",
-      margin: "auto",
-    },
-  }));
-
+import Box from "@mui/material/Box";
 
 const PatientContainer = (props) => {
-  const classes = useStyles();
   const { children, tabValue, index, ...other } = props;
 
   return (
     <Box
-      className={classes.tabPanel}
       role="tabpanel"
       hidden={tabValue !== index}
       id={`vertical-tabpanel-${index}`}
@@ -37,5 +17,4 @@ const PatientContainer = (props) => {
   );
 };
 
-
-export default PatientContainer
+export default PatientContainer;

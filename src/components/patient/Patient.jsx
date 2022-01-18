@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
-import Typography from "@material-ui/core/Typography";
-import Grid from "@material-ui/core/Grid";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
-
-import { makeStyles } from "@material-ui/core/styles";
-
-
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    elevation: 15,
-  },
-  roomSelect: {
-    minWidth: 250,
-  },
-  gridRow: {
-    margin: "48px 0px",
-  },
-  card: {
-    width: "60%",
-    margin: "auto",
-  },
-}));
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 
 const defaultState = {
   first_name: "",
@@ -33,7 +13,6 @@ const defaultState = {
 };
 
 const Patient = (props) => {
-  const classes = useStyles();
   const [values, setValues] = useState(defaultState);
 
   useEffect(() => {
@@ -49,20 +28,23 @@ const Patient = (props) => {
   }, [props.selectedId]);
 
   return (
-    <Card raised className={classes.card}>
+    <Card
+      raised
+      sx={{
+        width: "60%",
+        margin: "auto",
+      }}
+    >
       <CardContent>
         <Grid
-          className={classes.gridRow}
+          sx={{ marginY: 6 }}
           container
           direction="row"
           justify="space-evenly"
           alignItems="center"
         >
           <Grid item xs={2}>
-            <Typography
-              variant="h5"
-              color="primary"
-            >
+            <Typography variant="h5" color="primary">
               Patient
             </Typography>
           </Grid>
@@ -75,17 +57,14 @@ const Patient = (props) => {
         </Grid>
 
         <Grid
-          className={classes.gridRow}
+          sx={{ marginY: 6 }}
           container
           direction="row"
           justify="space-around"
           alignItems="center"
         >
           <Grid item xs={3}>
-            <Typography
-              variant="h5"
-              color="primary"
-            >
+            <Typography variant="h5" color="primary">
               Care Level
             </Typography>
           </Grid>
@@ -93,8 +72,6 @@ const Patient = (props) => {
             <Typography variant="h5">{values.care_level}</Typography>
           </Grid>
         </Grid>
-
-    
       </CardContent>
     </Card>
   );

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useTheme } from "@mui/styles";
+import { useTheme } from "@mui/material";
 import Modal from "@mui/material/Modal";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
-import TitleBar from "../TitleBar";
+import TitleBar from "../TitleBar/TitleBar";
 import Patient from "./Patient";
 import Rooms from "../../components/rooms/Rooms";
 import Button from "@mui/material/Button";
@@ -17,7 +17,7 @@ import Typography from "@mui/material/Typography";
 import { patientState, listWaitingPatients } from "../../redux/patientSlice";
 import { roomState, roomAdmission } from "../../redux/roomSlice";
 
-import ListComponent from "../../components/ListComponent";
+import PatientList from "../../components/patient/PaitentList";
 import MaxHeap from "../../utils/heap/maxHeap";
 
 const WaitingRoom = () => {
@@ -42,9 +42,9 @@ const WaitingRoom = () => {
     setValues({ ...values, patient_id: nextPatient.patient_id });
   };
 
-  // useEffect(() => {
-  //   dispatch(listWaitingPatients());
-  // }, []);
+  useEffect(() => {
+    dispatch(listWaitingPatients());
+  }, []);
 
   useEffect(() => {
     setPatients(waitingPatients);
@@ -159,56 +159,49 @@ const WaitingRoom = () => {
           </Grid>
         </Grid>
 
-        <Paper
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            elevation: 15,
-          }}
+        <Grid
+          container
+          direction="row"
+          justifyContent="center"
+          alignItems="center"
         >
-          <Grid
-            container
-            direction="row"
-            justifyContent="center"
-            alignItems="center"
-          >
-            <Grid item xs={2}>
-              <ListComponent patients={patients} selectedId={selectedId} />
-            </Grid>
+          <Grid item xs={2}>
+            <PatientList patients={patients} selectedId={selectedId} />
+          </Grid>
 
-            <Grid item xs={10}>
-              <Grid
-                container
-                direction="column"
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Grid item>
-                  <Button
-                    sx={{ textTransform: "uppercase", margin: 2 }}
-                    color="primary"
-                    disabled={values.patient_id}
-                    size="large"
-                    variant="contained"
-                    onClick={() => getNextPatient()}
-                  >
-                    Next Patient
-                  </Button>
-                </Grid>
-
-                {/* <Patient patient={selectedPatient} selectedId={selectedId} /> */}
+          <Grid item xs={10}>
+            <Grid
+              container
+              direction="column"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Grid item>
+                <Button
+                  sx={{ textTransform: "uppercase", margin: 2 }}
+                  color="primary"
+                  disabled={values.patient_id}
+                  size="large"
+                  variant="contained"
+                  onClick={() => getNextPatient()}
+                >
+                  Next Patient
+                </Button>
               </Grid>
+
+              <Patient patient={selectedPatient} selectedId={selectedId} />
             </Grid>
           </Grid>
-        </Paper>
+        </Grid>
       </form>
 
-      {/* <Modal
+      <Modal
         sx={{ width: "80%", margin: "auto" }}
         open={viewOccupancy}
         onClose={() => setViewOccupancy(false)}
       >
         <Rooms />
-      </Modal> */}
+      </Modal>
     </>
   );
 };

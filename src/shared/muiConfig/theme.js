@@ -1,4 +1,4 @@
-import { createTheme } from "@material-ui/core/styles";
+import { createTheme } from "@mui/material/styles";
 
 export const theme = createTheme({
   palette: {
@@ -14,9 +14,3 @@ export const theme = createTheme({
     },
   },
 });
-
-export const ButtonStyles = {
-  button: {
-    margin: "10px",
-  },
-};
