@@ -4,7 +4,6 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import Navbar from "../Navbar/NavBar";
 
 const Header = () => {
   return (
@@ -12,7 +11,6 @@ const Header = () => {
       <CssBaseline />
       <AppBar position="fixed">
         <Toolbar>
-          <Navbar />
           <Box>
             <Typography variant="h6" sx={{ mr: 4, textTransform: "uppercase" }}>
               hospital
