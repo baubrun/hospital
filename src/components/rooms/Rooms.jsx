@@ -6,19 +6,10 @@ import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
-import { withStyles } from "@mui/styles";
 import Tooltip from "@mui/material/Tooltip";
 
 import { roomState, listRooms } from "../../redux/roomSlice";
 import TitleBar from "../TitleBar/TitleBar";
-
-const CustomToolTip = withStyles((theme) => ({
-  tooltip: {
-    backgroundColor: theme.palette.secondary.main,
-    boxShadow: theme.shadows[1],
-    fontSize: 24,
-  },
-}))(Tooltip);
 
 const Rooms = () => {
   const dispatch = useDispatch();
@@ -40,7 +31,7 @@ const Rooms = () => {
             <Grid
               container
               direction="row"
-              justify="center"
+              justifyContent="center"
               alignItems="center"
             >
               <Grid item xs={12}>
@@ -58,7 +49,7 @@ const Rooms = () => {
                 .filter((r) => r.room_number % 2 === 1)
                 .map((room, idx) => {
                   return (
-                    <CustomToolTip
+                    <Tooltip
                       key={idx}
                       title={
                         room.occupied
@@ -67,12 +58,7 @@ const Rooms = () => {
                       }
                       placement="bottom-end"
                     >
-                      <Grid
-                        key={idx}
-                        item
-                        xs={2}
-                        style={{ margin: "16px 32px" }}
-                      >
+                      <Grid key={idx} item xs={2} sx={{ margin: "16px 32px" }}>
                         <Typography variant="h6" sx={{ textAlign: "center" }}>
                           {room.room_number}
                         </Typography>
@@ -85,7 +71,7 @@ const Rooms = () => {
                           r={20}
                         />
                       </Grid>
-                    </CustomToolTip>
+                    </Tooltip>
                   );
                 })}
             </Grid>
@@ -95,60 +81,55 @@ const Rooms = () => {
             <Box></Box>
           </Grid>
 
-          <Grid item xs={4} sx={{ marginBottom: theme.spacing(14) }}>
-            <Grid
-              container
-              direction="row"
-              justify="center"
-              alignItems="center"
-            >
-              <Grid item xs={12}>
-                <Typography
-                  sx={{ textTransform: "uppercase", textAlign: "center" }}
-                >
-                  short stay
-                </Typography>
-              </Grid>
-              {rooms
-                .filter((r) => r.room_number % 2 === 0)
-                .map((room, idx) => {
-                  return (
-                    <CustomToolTip
-                      key={idx}
-                      title={
-                        room.occupied
-                          ? `${room.first_name} ${room.last_name}`
-                          : "VACANT"
-                      }
-                      placement="bottom-end"
-                    >
-                      <Grid
-                        key={idx}
-                        item
-                        xs={2}
-                        style={{ margin: "16px 32px" }}
-                      >
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            textAlign: "center",
-                          }}
-                        >
-                          {room.room_number}
-                        </Typography>
-
-                        <Circle
-                          style={{ padding: "0px !important" }}
-                          fill={{ color: isRoomOccupied(room.occupied) }}
-                          stroke={{ color: "#b256c2" }}
-                          strokeWidth={5}
-                          r={20}
-                        />
-                      </Grid>
-                    </CustomToolTip>
-                  );
-                })}
+          <Grid
+            item
+            container
+            direction="row"
+            justifyContent="center"
+            alignItems="center"
+            sx={{ marginBottom: theme.spacing(14) }}
+          >
+            <Grid item xs={12}>
+              <Typography
+                sx={{ textTransform: "uppercase", textAlign: "center" }}
+              >
+                short stay
+              </Typography>
             </Grid>
+            {rooms
+              .filter((r) => r.room_number % 2 === 0)
+              .map((room, idx) => {
+                return (
+                  <Tooltip
+                    key={idx}
+                    title={
+                      room.occupied
+                        ? `${room.first_name} ${room.last_name}`
+                        : "VACANT"
+                    }
+                    placement="bottom-end"
+                  >
+                    <Grid key={idx} item xs={2} style={{ margin: "16px 32px" }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          textAlign: "center",
+                        }}
+                      >
+                        {room.room_number}
+                      </Typography>
+
+                      <Circle
+                        style={{ padding: "0px !important" }}
+                        fill={{ color: isRoomOccupied(room.occupied) }}
+                        stroke={{ color: "#b256c2" }}
+                        strokeWidth={5}
+                        r={20}
+                      />
+                    </Grid>
+                  </Tooltip>
+                );
+              })}
           </Grid>
         </Grid>
       </Paper>

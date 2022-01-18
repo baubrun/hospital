@@ -19,7 +19,7 @@ const dischargePatient = async (req, res) => {
         occupant_id: occupant_id,
       },
       {
-        occupant_id: null,
+        $unset: { occupant_id: "" },
         occupied: false,
       }
     );
@@ -46,9 +46,20 @@ const getPatients = async (req, res) => {
 
 const getWaitingList = async (req, res) => {
   try {
-    const rooms = await Room.where("occupant_id").exists(false);
+    // left join on _id where occupant_id does not exist
+    const roomAggregate = await Patient.aggregate([
+      {
+        $lookup: {
+          from: "rooms",
+          localField: "_id",
+          foreignField: "occupant_id",
+          as: "waiting_list",
+        },
+      },
+      { $match: { "waiting_list.0.occupant_id": { $exists: false } } },
+    ]);
 
-    return res.status(200).json(rooms);
+    return res.status(200).json(roomAggregate);
   } catch (error) {
     return res.status(500).json({
       error: error.message,

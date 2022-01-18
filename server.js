@@ -14,8 +14,8 @@ app.use(cors());
 
 app.use("/", express.static("build"));
 
-app.use("/api/room", roomRoutes);
-app.use("/api/patient", patientRoutes);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/patients", patientRoutes);
 
 /*=============
  Handle Errors

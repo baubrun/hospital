@@ -1,89 +1,86 @@
 import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { domain } from "../utils";
+import baseUrl from "./util";
 
 export const admitPatient = createAsyncThunk(
-  "/api/patients/admit",
+  "/patients/admit",
   async (data) => {
     try {
       const res = await axios.post(
-        `${domain}/api/patients/${data.patient_id}/admit`,
+        `${baseUrl}patients/${data.patient_id}/admit`,
         data
       );
       return res.data;
     } catch (error) {
       return {
-        error: error.response.data.error,
+        error: error?.response?.data?.error,
       };
     }
   }
 );
 
 export const createPatient = createAsyncThunk(
-  "/api/patients/create",
+  "/patients/create",
   async (data) => {
     try {
-      const res = await axios.post(`${domain}/api/patients`, data);
+      const res = await axios.post(`${baseUrl}patients`, data);
       return res.data;
     } catch (error) {
       return {
-        error: error.response.data.error,
+        error: error?.response?.data?.error,
       };
     }
   }
 );
 
 export const dischargePatient = createAsyncThunk(
-  "/api/patients/discharge",
+  "/patients/discharge",
   async (data) => {
     try {
       const res = await axios.post(
-        `${domain}/api/patients/${data.patient_id}/discharge`,
+        `${baseUrl}patients/${data.patient_id}/discharge`,
         data
       );
       return res.data;
     } catch (error) {
       return {
-        error: error.response.data.error,
+        error: error?.response?.data?.error,
       };
     }
   }
 );
 
-export const readPatient = createAsyncThunk(
-  "/api/patients/read",
-  async (data) => {
-    try {
-      const res = await axios.post(`${domain}/api/patients/read`, data);
-      return res.data;
-    } catch (error) {
-      return {
-        error: error.response.data.error,
-      };
-    }
-  }
-);
-
-export const listPatients = createAsyncThunk("/api/patients/list", async () => {
+export const readPatient = createAsyncThunk("/patients/read", async (data) => {
   try {
-    const res = await axios.get(`${domain}/api/patients`);
+    const res = await axios.post(`${baseUrl}patients/read`, data);
     return res.data;
   } catch (error) {
     return {
-      error: error.response.data.error,
+      error: error?.response?.data?.error,
     };
   }
 });
 
-export const listWaitingPatients = createAsyncThunk(
-  "/api/patients/waiting",
+export const getPatients = createAsyncThunk("getPatients", async () => {
+  try {
+    const res = await axios.get(`${baseUrl}patients`);
+    return res.data;
+  } catch (error) {
+    return {
+      error: error?.response?.data?.error,
+    };
+  }
+});
+
+export const getWaitingList = createAsyncThunk(
+  "/patients/getWaitingList",
   async () => {
     try {
-      const res = await axios.get(`${domain}/api/patients/waiting`);
+      const res = await axios.get(`${baseUrl}/patients/waiting`);
       return res.data;
     } catch (error) {
       return {
-        error: error.response.data.error,
+        error: error?.response?.data?.error,
       };
     }
   }
@@ -114,50 +111,39 @@ export const patientSlice = createSlice({
     },
     [createPatient.fulfilled]: (state, action) => {
       state.loading = false;
-      const { error, patient } = action.payload;
-      if (error) {
-        state.error = error;
-      } else {
-        state.waitingPatients = [...state.waitingPatients, patient];
-      }
+      state.waitingPatients = [
+        ...state.waitingPatients,
+        action?.payload?.patient,
+      ];
     },
     [createPatient.rejected]: (state, action) => {
       state.loading = false;
-      state.error = action.payload.error;
+      state.error = action?.payload?.error;
     },
 
-    [listPatients.pending]: (state) => {
+    [getPatients.pending]: (state) => {
       state.loading = true;
     },
-    [listPatients.fulfilled]: (state, action) => {
+    [getPatients.fulfilled]: (state, action) => {
       state.loading = false;
-      const { error, patients } = action.payload;
-      if (error) {
-        state.error = error;
-      } else {
-        state.patients = patients;
-      }
+      state.patients = action?.payload?.patients;
     },
-    [listPatients.rejected]: (state, action) => {
+    [getPatients.rejected]: (state, action) => {
       state.loading = false;
-      state.error = action.payload.error;
+      state.error = action?.payload?.error;
     },
 
-    [listWaitingPatients.pending]: (state) => {
+    [getWaitingList.pending]: (state) => {
       state.loading = true;
     },
-    [listWaitingPatients.fulfilled]: (state, action) => {
+    [getWaitingList.fulfilled]: (state, action) => {
       state.loading = false;
-      const { error, waitingPatients } = action.payload;
-      if (error) {
-        state.error = error;
-      } else {
-        state.waitingPatients = waitingPatients;
-      }
+      console.log("action?.payload :>> ", action?.payload);
+      // state.waitingPatients = action?.payload?.rooms;
     },
-    [listWaitingPatients.rejected]: (state, action) => {
+    [getWaitingList.rejected]: (state, action) => {
       state.loading = false;
-      state.error = action.payload.error;
+      state.error = action?.payload?.error;
     },
 
     [readPatient.pending]: (state) => {
@@ -165,16 +151,12 @@ export const patientSlice = createSlice({
     },
     [readPatient.fulfilled]: (state, action) => {
       state.loading = false;
-      const { error, patient } = action.payload;
-      if (error) {
-        state.error = error;
-      } else {
-        state.patient = patient;
-      }
+
+      state.patient = action?.payload?.patient;
     },
     [readPatient.rejected]: (state, action) => {
       state.loading = false;
-      state.error = action.payload.error;
+      state.error = action?.payload?.error;
     },
   },
 });

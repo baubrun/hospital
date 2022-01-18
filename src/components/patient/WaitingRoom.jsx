@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTheme } from "@mui/material";
 import Modal from "@mui/material/Modal";
 import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
 import TitleBar from "../TitleBar/TitleBar";
 import Patient from "./Patient";
 import Rooms from "../../components/rooms/Rooms";
@@ -14,7 +13,7 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 
-import { patientState, listWaitingPatients } from "../../redux/patientSlice";
+import { patientState, getWaitingList } from "../../redux/patientSlice";
 import { roomState, roomAdmission } from "../../redux/roomSlice";
 
 import PatientList from "../../components/patient/PaitentList";
@@ -22,7 +21,6 @@ import MaxHeap from "../../utils/heap/maxHeap";
 
 const WaitingRoom = () => {
   const dispatch = useDispatch();
-  const theme = useTheme();
   const { rooms } = useSelector(roomState);
   const { waitingPatients } = useSelector(patientState);
   const [patients, setPatients] = useState([]);
@@ -38,27 +36,30 @@ const WaitingRoom = () => {
 
   const getNextPatient = () => {
     const nextPatient = mh.poll();
-    setSelectedId(nextPatient.patient_id);
+    setSelectedId(nextPatient?.patient_id);
     setValues({ ...values, patient_id: nextPatient.patient_id });
   };
 
   useEffect(() => {
-    dispatch(listWaitingPatients());
+    dispatch(getWaitingList());
   }, []);
 
   useEffect(() => {
     setPatients(waitingPatients);
-  }, [waitingPatients]);
-
-  useEffect(() => {
     if (waitingPatients) {
       mh.add(waitingPatients);
     }
-  });
+  }, [waitingPatients]);
+
+  // useEffect(() => {
+  //   if (waitingPatients) {
+  //     mh.add(waitingPatients);
+  //   }
+  // },[]);
 
   useEffect(() => {
     if (selectedId) {
-      const found = patients.find((p) => p.patient_id === selectedId);
+      const found = patients.find((p) => p?.patient_id === selectedId);
       setSelectedPatient(found);
     }
   }, [selectedId]);
@@ -72,14 +73,14 @@ const WaitingRoom = () => {
     evt.preventDefault();
 
     const data = {
-      room_number: values.roomAssigned,
+      room_number: values?.roomAssigned,
       occupied: true,
-      occupant_id: values.patient_id,
+      occupant_id: values?.patient_id,
     };
     dispatch(roomAdmission(data));
     setSelectedId(null);
     setValues({ patient_id: null, roomAssigned: "" });
-    dispatch(listWaitingPatients());
+    dispatch(getWaitingList());
   };
 
   return (
@@ -128,16 +129,16 @@ const WaitingRoom = () => {
                 sx={{ minWidth: 250 }}
                 labelId="select"
                 id="select"
-                value={values.roomAssigned}
+                value={values?.roomAssigned}
                 onChange={(evt) => handleRoom(evt)}
                 label="Rooms"
               >
                 {rooms
-                  .filter((r) => r.occupied === false)
+                  ?.filter((r) => r?.occupied === false)
                   .map((room, idx) => {
                     return (
-                      <MenuItem key={idx} value={room.room_number}>
-                        {room.room_number}
+                      <MenuItem key={idx} value={room?.room_number}>
+                        {room?.room_number}
                       </MenuItem>
                     );
                   })}
@@ -152,7 +153,7 @@ const WaitingRoom = () => {
               size="large"
               variant="contained"
               type="submit"
-              disabled={!values.patient_id || !values.roomAssigned}
+              disabled={!values?.patient_id || !values?.roomAssigned}
             >
               CONFIRM
             </Button>
@@ -180,7 +181,7 @@ const WaitingRoom = () => {
                 <Button
                   sx={{ textTransform: "uppercase", margin: 2 }}
                   color="primary"
-                  disabled={values.patient_id}
+                  disabled={values?.patient_id}
                   size="large"
                   variant="contained"
                   onClick={() => getNextPatient()}
@@ -195,13 +196,15 @@ const WaitingRoom = () => {
         </Grid>
       </form>
 
-      <Modal
+      {/* <Modal
         sx={{ width: "80%", margin: "auto" }}
         open={viewOccupancy}
         onClose={() => setViewOccupancy(false)}
       >
         <Rooms />
-      </Modal>
+      </Modal> */}
+
+      {viewOccupancy && <Rooms />}
     </>
   );
 };
