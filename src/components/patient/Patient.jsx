@@ -5,74 +5,55 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 
-const defaultState = {
-  first_name: "",
-  last_name: "",
-  care_level: null,
-  waitingRoom: false,
-};
-
 const Patient = (props) => {
-  const [values, setValues] = useState(defaultState);
+  const { selectedPatient, selectedId } = props;
+  const [patient, setPatient] = useState({});
 
   useEffect(() => {
-    setValues({
-      ...props.patient,
-    });
-  }, [props.patient]);
+    setPatient(selectedPatient);
+  }, [selectedPatient]);
 
   useEffect(() => {
-    if (!props.selectedId) {
-      setValues(defaultState);
-    }
-  }, [props.selectedId]);
+    if (!selectedId) setPatient({});
+  }, [selectedId]);
 
   return (
-    <Card
-      raised
-      sx={
-        {
-          // width: "60%",
-          // margin: "auto",
-        }
-      }
-      elevation={10}
-    >
+    <Card raised elevation={10}>
       <CardContent>
         <Grid
-          sx={{ marginY: 6 }}
           container
-          direction="row"
-          justify="space-evenly"
+          direction="column"
+          justifyContent="center"
           alignItems="center"
+          sx={{}}
         >
-          <Grid item xs={2}>
-            <Typography variant="h5" color="primary">
+          <Grid item>
+            <Typography
+              variant="h6"
+              color="primary"
+              sx={{ textTransform: "uppercase", marginY: 2 }}
+            >
               Patient
             </Typography>
           </Grid>
-          <Grid item xs={5}>
-            <Typography variant="h5">{values.first_name}</Typography>
-          </Grid>
-          <Grid item xs={5}>
-            <Typography variant="h5">{values.last_name}</Typography>
-          </Grid>
-        </Grid>
 
-        <Grid
-          sx={{ marginY: 6 }}
-          container
-          direction="row"
-          justify="space-around"
-          alignItems="center"
-        >
-          <Grid item xs={3}>
-            <Typography variant="h5" color="primary">
+          <Grid item>
+            <Typography variant="h5">{`${patient?.first_name || ""} ${
+              patient?.last_name || ""
+            }`}</Typography>
+          </Grid>
+
+          <Grid item>
+            <Typography
+              variant="h6"
+              color="primary"
+              sx={{ textTransform: "uppercase", marginY: 2 }}
+            >
               Care Level
             </Typography>
           </Grid>
-          <Grid item xs={9}>
-            <Typography variant="h5">{values.care_level}</Typography>
+          <Grid item>
+            <Typography variant="h5">{patient?.care_level}</Typography>
           </Grid>
         </Grid>
       </CardContent>

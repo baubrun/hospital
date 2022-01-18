@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import _ from "lodash";
 import baseUrl from "./util";
 import { hideLoader, showLoader } from "./layoutSlice";
+import { setPatients } from "./patientSlice";
 
 export const getRooms = createAsyncThunk(
   "api/getRooms",
@@ -52,19 +53,30 @@ export const vacateRoom = createAsyncThunk(
   }
 );
 
+export const clearRooms = createAsyncThunk(
+  "api/rooms/clear",
+  async (_, thunkApi) => {
+    try {
+      thunkApi.dispatch(showLoader());
+      const { data } = await axios.delete(`${baseUrl}/rooms/clear`);
+      thunkApi.dispatch(setPatients({ waitingList: data?.patients }));
+      return data;
+    } catch (error) {
+      thunkApi.dispatch(hideLoader());
+      return thunkApi.rejectWithValue(error?.response?.data);
+    } finally {
+      thunkApi.dispatch(hideLoader());
+    }
+  }
+);
+
 export const roomSlice = createSlice({
   name: "rooms",
   initialState: {
-    occupant_id: null,
-    error: "",
-    loading: false,
     rooms: [],
   },
   reducers: {},
   extraReducers: {
-    [occupyRoom.pending]: (state) => {
-      state.loading = true;
-    },
     [occupyRoom.fulfilled]: (state, action) => {
       state.loading = false;
       const { room } = action?.payload;
@@ -75,18 +87,9 @@ export const roomSlice = createSlice({
       updatedRooms[found] = room;
       state.rooms = updatedRooms;
     },
-    [occupyRoom.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action?.payload?.error;
-    },
 
-    [vacateRoom.fulfilled]: (state, action) => {
-      state.loading = false;
-      const { error } = action?.payload;
-      if (error) {
-        state.error = error;
-      } else {
-      }
+    [clearRooms.fulfilled]: (state, action) => {
+      state.rooms = action?.payload?.rooms;
     },
 
     [getRooms.fulfilled]: (state, action) => {

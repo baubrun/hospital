@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
 import { useTheme } from "@mui/material";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -7,19 +6,16 @@ import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
-// import { patientState } from "../../redux/patientSlice";
-
 const PatientList = (props) => {
-  const { selectedId, waitingPatients, patients } = props;
+  const { selectedId, waitingList } = props;
   const theme = useTheme();
-  // const [patients, setPatients] = useState([]);
-  // const { waitingPatients } = useSelector(patientState);
+  const [patientList, setPatientsList] = useState([]);
 
-  // useEffect(() => {
-  //   setPatients(waitingPatients);
-  // }, [selectedId, waitingPatients]);
+  useEffect(() => {
+    setPatientsList(waitingList);
+  }, [selectedId, waitingList]);
 
-  if (patients?.length < 1) {
+  if (patientList?.length < 1) {
     return (
       <Box
         sx={{
@@ -40,8 +36,8 @@ const PatientList = (props) => {
         overflow: "auto",
       }}
     >
-      {patients?.map((i, idx) => (
-        <ListItem button key={idx} selected={i?.patient_id === selectedId}>
+      {patientList?.map((i, idx) => (
+        <ListItem button key={idx} selected={i?._id === selectedId}>
           <ListItemText primary={`${i?.first_name} ${i?.last_name}`} />
         </ListItem>
       ))}

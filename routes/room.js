@@ -8,4 +8,6 @@ router.route("/occupy").post(roomController.occupyRoom);
 
 router.route("/vacate").post(roomController.vacateRoom);
 
+router.route("/clear").delete(roomController.clearRooms);
+
 module.exports = router;

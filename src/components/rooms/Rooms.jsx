@@ -1,9 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Circle } from "react-shapes";
-import { useTheme } from "@mui/material";
 import Paper from "@mui/material/Paper";
-import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import { roomState, getRooms } from "../../redux/roomSlice";
@@ -11,6 +9,8 @@ import { showToaster } from "../../redux/layoutSlice";
 import { STATUS_ERROR } from "../../shared/constants/status";
 import { styled } from "@mui/material/styles";
 import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
+import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material";
 
 const CustomToolTip = styled(({ className, ...props }) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -20,8 +20,11 @@ const CustomToolTip = styled(({ className, ...props }) => (
   },
 }));
 
+const roomOccupiedColor = "#b256c2";
+
 const Rooms = () => {
   const dispatch = useDispatch();
+  const theme = useTheme();
   const { rooms } = useSelector(roomState);
 
   const fetchRooms = async () => {
@@ -63,10 +66,13 @@ const Rooms = () => {
           justifyContent="space-evenly"
           alignItems="center"
         >
-          <Grid id="l-stay" item xs={6} container direction="column">
+          <Grid id="l-stay" item xs={5} container direction="column">
             <Grid item>
               <Typography
+                variant="h6"
+                color="primary"
                 sx={{
+                  fontWeight: "bolder",
                   textTransform: "uppercase",
                   textAlign: "center",
                 }}
@@ -83,9 +89,9 @@ const Rooms = () => {
                     <CustomToolTip
                       key={idx}
                       title={
-                        room?.occupied
-                          ? `${room?.first_name} ${room?.last_name}`
-                          : "VACANT"
+                        room?.occupant_id
+                          ? `${room?.occupant_id?.first_name} ${room?.occupant_id?.last_name}`
+                          : ""
                       }
                       placement="bottom-end"
                     >
@@ -96,8 +102,8 @@ const Rooms = () => {
 
                         <Circle
                           style={{ padding: "0px !important" }}
-                          fill={{ color: isRoomOccupied(room?.occupied) }}
-                          stroke={{ color: "#b256c2" }}
+                          fill={{ color: isRoomOccupied(room?.occupant_id) }}
+                          stroke={{ color: roomOccupiedColor }}
                           strokeWidth={5}
                           r={20}
                         />
@@ -108,10 +114,16 @@ const Rooms = () => {
             </Grid>
           </Grid>
 
-          <Grid id="s-stay" container item direction="column" xs={6}>
+          <Grid id="s-stay" container item direction="column" xs={5}>
             <Grid item>
               <Typography
-                sx={{ textTransform: "uppercase", textAlign: "center" }}
+                variant="h6"
+                color="primary"
+                sx={{
+                  fontWeight: "bolder",
+                  textTransform: "uppercase",
+                  textAlign: "center",
+                }}
               >
                 short stay
               </Typography>
@@ -124,9 +136,9 @@ const Rooms = () => {
                     <CustomToolTip
                       key={idx}
                       title={
-                        room?.occupied
-                          ? `${room?.first_name} ${room?.last_name}`
-                          : "VACANT"
+                        room?.occupant_id
+                          ? `${room?.occupant_id?.first_name} ${room?.occupant_id?.last_name}`
+                          : ""
                       }
                       placement="bottom-end"
                       style={{ fontSize: 24 }}
@@ -148,8 +160,8 @@ const Rooms = () => {
 
                         <Circle
                           style={{ padding: "0px !important" }}
-                          fill={{ color: isRoomOccupied(room?.occupied) }}
-                          stroke={{ color: "#b256c2" }}
+                          fill={{ color: isRoomOccupied(room?.occupant_id) }}
+                          stroke={{ color: roomOccupiedColor }}
                           strokeWidth={5}
                           r={20}
                         />

@@ -26,7 +26,6 @@ const layoutSlice = createSlice({
       state.isAlertOpen = false;
     },
     showAlert: (state, action) => {
-      console.log("action :>> ", action);
       state.isAlertOpen = true;
       state.alertData = action.payload?.alertData;
       state.alertMessage = action.payload?.message;
@@ -43,7 +42,6 @@ const layoutSlice = createSlice({
       state.toasterVisible = false;
     },
     showToaster: (state, action) => {
-      console.log("action :>> ", action);
       state.toasterVisible = true;
       state.toasterMessage = action.payload?.message;
       state.toasterStatus = action.payload?.status;

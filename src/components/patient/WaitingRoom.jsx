@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useTheme } from "@mui/material";
-import Modal from "@mui/material/Modal";
 import Grid from "@mui/material/Grid";
 import Patient from "./Patient";
 import Rooms from "../../components/rooms/Rooms";
@@ -11,38 +9,33 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
-
+import { useTheme } from "@mui/material";
 import {
   patientState,
   getWaitingList,
-  removePatient,
+  filterPatientList,
 } from "../../redux/patientSlice";
-import { roomState, occupyRoom } from "../../redux/roomSlice";
+import { roomState, occupyRoom, clearRooms } from "../../redux/roomSlice";
 import PatientList from "./PatientList";
 import MaxHeap from "../../utils/heap/maxHeap";
 import { showToaster } from "../../redux/layoutSlice";
 import { STATUS_ERROR } from "../../shared/constants/status";
 
+const defaultValues = {
+  patient_id: null,
+  roomAssigned: null,
+};
+
 const WaitingRoom = () => {
   const dispatch = useDispatch();
+  const theme = useTheme();
   const { rooms } = useSelector(roomState);
   const { waitingList } = useSelector(patientState);
   const [patients, setPatients] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState({});
-  const [viewOccupancy, setViewOccupancy] = useState(false);
-  const [values, setValues] = useState({
-    patient_id: null,
-    roomAssigned: null,
-  });
-
-  const mh = new MaxHeap();
-
-  const getNextPatient = () => {
-    const nextPatient = mh.poll();
-    setSelectedId(nextPatient?.patient_id);
-    setValues((prev) => ({ ...prev, patient_id: nextPatient.patient_id }));
-  };
+  const [values, setValues] = useState(defaultValues);
+  const [vacancies, setVacancies] = useState(true);
 
   const fetchWaitingList = async () => {
     try {
@@ -57,27 +50,63 @@ const WaitingRoom = () => {
     }
   };
 
-  const fetchRoomAdmission = async (data) => {};
-
   useEffect(() => {
     fetchWaitingList();
   }, []);
 
+  const mh = new MaxHeap();
+
+  const handleSelectedPatient = (id) => {
+    if (id) {
+      const found = patients.find((p) => p?._id === id);
+      if (found) setSelectedPatient(found);
+    }
+  };
+
+  const isVacancy = () => {
+    const r = rooms.filter((r) => r?.occupant_id);
+    const result = r?.length < 10;
+    setVacancies(result);
+  };
+
+  const isOccupied = () => {
+    const r = rooms.filter((r) => r?.occupant_id);
+    return r?.length > 0;
+  };
+
+  const getNextPatient = () => {
+    const nextPatient = mh.poll();
+    setSelectedId(nextPatient?._id);
+    handleSelectedPatient(nextPatient?._id);
+    setValues((prev) => ({ ...prev, patient_id: nextPatient?._id }));
+  };
+
   useEffect(() => {
     setPatients(waitingList);
-    mh.add(waitingList);
   }, [waitingList]);
 
   useEffect(() => {
-    if (selectedId) {
-      const found = patients.find((p) => p?.patient_id === selectedId);
-      setSelectedPatient(found);
+    if (waitingList) {
+      mh.add(waitingList);
     }
-  }, [selectedId]);
+  });
 
   const handleRoom = (evt) => {
     const { value } = evt.target;
     setValues({ ...values, roomAssigned: value });
+  };
+
+  const fetchClearRooms = () => {
+    try {
+      dispatch(clearRooms());
+    } catch (error) {
+      dispatch(
+        showToaster({
+          message: error?.message,
+          status: STATUS_ERROR,
+        })
+      );
+    }
   };
 
   const handleSubmit = (evt) => {
@@ -90,9 +119,11 @@ const WaitingRoom = () => {
 
     try {
       dispatch(occupyRoom(roomData));
+      dispatch(filterPatientList({ id: roomData.occupant_id }));
       setSelectedId(null);
-      dispatch(removePatient({ id: values?.patient_id }));
-      setValues({ patient_id: null, roomAssigned: null });
+      setSelectedPatient({});
+      setValues(defaultValues);
+      isVacancy();
     } catch (error) {
       dispatch(
         showToaster({
@@ -109,24 +140,11 @@ const WaitingRoom = () => {
         <Grid
           container
           direction="row"
-          justifyContent="space-evenly"
+          justifyContent="center"
           alignItems="center"
+          mt={5}
+          columnSpacing={3}
         >
-          {/* <Grid item>
-            <Button
-              color="secondary"
-              size="large"
-              variant="contained"
-              onClick={() => setViewOccupancy((prev) => !prev)}
-              sx={{
-                textTransform: "uppercase",
-                margin: 2,
-              }}
-            >
-              view rooms
-            </Button>
-          </Grid> */}
-
           <Grid item>
             <Typography
               variant="h5"
@@ -134,7 +152,7 @@ const WaitingRoom = () => {
                 textTransform: "uppercase",
               }}
             >
-              admit patient:
+              assign patient to room:
             </Typography>
           </Grid>
 
@@ -150,9 +168,10 @@ const WaitingRoom = () => {
                 value={values?.roomAssigned || ""}
                 onChange={(evt) => handleRoom(evt)}
                 label="Rooms"
+                disabled={!selectedPatient?._id}
               >
                 {rooms
-                  ?.filter((r) => r?.occupied === false)
+                  ?.filter((r) => !r?.occupant_id)
                   .map((room, idx) => {
                     return (
                       <MenuItem key={idx} value={room?.room_number}>
@@ -167,13 +186,15 @@ const WaitingRoom = () => {
           <Grid item>
             <Button
               sx={{ textTransform: "uppercase" }}
-              color="primary"
+              color="secondary"
               size="large"
               variant="contained"
               type="submit"
-              disabled={!values?.patient_id || !values?.roomAssigned}
+              disabled={
+                !values?.patient_id || !values?.roomAssigned || !vacancies
+              }
             >
-              CONFIRM
+              assign
             </Button>
           </Grid>
         </Grid>
@@ -196,24 +217,17 @@ const WaitingRoom = () => {
               fontWeight: "bolder",
             }}
           >
-            Patients
+            {`patients (${patients?.length})`}
           </Typography>
-          <PatientList patients={patients} selectedId={selectedId} />
+          <PatientList waitingList={waitingList} selectedId={selectedId} />
         </Grid>
 
-        <Grid
-          container
-          item
-          direction="column"
-          // justifyContent="center"
-          // alignItems="center"
-          xs={3}
-        >
+        <Grid container item direction="column" xs={3}>
           <Grid item mb={2}>
             <Button
-              sx={{ textTransform: "uppercase" }}
+              sx={{ textTransform: "uppercase", marginLeft: "30%" }}
               color="primary"
-              disabled={values?.patient_id}
+              disabled={Boolean(values?.patient_id) || !vacancies}
               size="large"
               variant="contained"
               onClick={() => getNextPatient()}
@@ -222,15 +236,38 @@ const WaitingRoom = () => {
             </Button>
           </Grid>
 
-          <Grid item>
-            <Patient patient={selectedPatient} selectedId={selectedId} />
-          </Grid>
+          {selectedPatient?._id && (
+            <Grid item>
+              <Patient
+                selectedPatient={selectedPatient}
+                selectedId={selectedId}
+              />
+            </Grid>
+          )}
         </Grid>
 
         <Grid item xs={7}>
           <Rooms />
         </Grid>
       </Grid>
+
+      {isOccupied() && (
+        <Grid container justifyContent="center" alignItems="center">
+          <Grid item>
+            <Button
+              sx={{
+                textTransform: "uppercase",
+                backgroundColor: theme.palette.secondary.light,
+              }}
+              size="large"
+              variant="contained"
+              onClick={() => fetchClearRooms()}
+            >
+              CLEAR ROOMS
+            </Button>
+          </Grid>
+        </Grid>
+      )}
     </>
   );
 };

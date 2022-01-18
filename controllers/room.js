@@ -3,7 +3,7 @@ const Room = require("../models/room");
 
 const getRooms = async (req, res) => {
   try {
-    const rooms = await Room.find({});
+    const rooms = await Room.find({}).populate("occupant_id");
     return res.status(200).json({ rooms });
   } catch (error) {
     return res.status(500).json({
@@ -21,25 +21,22 @@ const occupyRoom = async (req, res) => {
         room_number: room_number,
       },
       {
-        occupied: true,
         occupant_id: occupant_id,
       },
       { new: true }
-    );
+    ).populate("occupant_id");
 
-    const patient = await Patient.findOneAndUpdate(
+    await Patient.findOneAndUpdate(
       {
         occupant_id: occupant_id,
       },
       {
         admission: new Date(),
-      },
-      { new: true }
+      }
     );
 
     return res.status(200).json({
       room,
-      patient,
     });
   } catch (error) {
     return res.status(500).json({
@@ -54,7 +51,6 @@ const vacateRoom = async (req, res) => {
     const room = await Room.findByIdAndUpdate(
       room_id,
       {
-        occupied: false,
         $unset: { occupant_id: "" },
       },
       { new: true }
@@ -68,8 +64,31 @@ const vacateRoom = async (req, res) => {
   }
 };
 
+const clearRooms = async (req, res) => {
+  try {
+    await Room.updateMany(
+      {
+        room_number: { $exists: true },
+      },
+      {
+        $unset: { occupant_id: "" },
+      }
+    );
+    const rooms = await Room.find({});
+
+    const patients = await Patient.find({}).sort({ last_name: 1 });
+
+    return res.status(200).json({ rooms, patients });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   occupyRoom,
   getRooms,
   vacateRoom,
+  clearRooms,
 };
