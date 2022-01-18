@@ -1,16 +1,17 @@
 import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { hideLoader, showLoader } from "./layoutSlice";
 import baseUrl from "./util";
 
 export const admitPatient = createAsyncThunk(
   "/patients/admit",
-  async (data) => {
+  async (patient) => {
     try {
-      const res = await axios.post(
-        `${baseUrl}patients/${data.patient_id}/admit`,
+      const { data } = await axios.post(
+        `${baseUrl}patients/${patient.patient_id}/admit`,
         data
       );
-      return res.data;
+      return data;
     } catch (error) {
       return {
         error: error?.response?.data?.error,
@@ -19,12 +20,12 @@ export const admitPatient = createAsyncThunk(
   }
 );
 
-export const createPatient = createAsyncThunk(
-  "/patients/create",
-  async (data) => {
+export const postPatient = createAsyncThunk(
+  "/patients/postPatient",
+  async (patient) => {
     try {
-      const res = await axios.post(`${baseUrl}patients`, data);
-      return res.data;
+      const { data } = await axios.post(`${baseUrl}patients`, patient);
+      return data;
     } catch (error) {
       return {
         error: error?.response?.data?.error,
@@ -37,11 +38,11 @@ export const dischargePatient = createAsyncThunk(
   "/patients/discharge",
   async (data) => {
     try {
-      const res = await axios.post(
+      const { data } = await axios.post(
         `${baseUrl}patients/${data.patient_id}/discharge`,
         data
       );
-      return res.data;
+      return data;
     } catch (error) {
       return {
         error: error?.response?.data?.error,
@@ -50,38 +51,34 @@ export const dischargePatient = createAsyncThunk(
   }
 );
 
-export const readPatient = createAsyncThunk("/patients/read", async (data) => {
-  try {
-    const res = await axios.post(`${baseUrl}patients/read`, data);
-    return res.data;
-  } catch (error) {
-    return {
-      error: error?.response?.data?.error,
-    };
+export const getPatients = createAsyncThunk(
+  "/patients/getPatients",
+  async (_, thunkApi) => {
+    try {
+      thunkApi.dispatch(showLoader());
+      const { data } = await axios.get(`${baseUrl}/patients`);
+      return data;
+    } catch (error) {
+      thunkApi.dispatch(hideLoader());
+      return thunkApi.rejectWithValue(error?.response?.data);
+    } finally {
+      thunkApi.dispatch(hideLoader());
+    }
   }
-});
-
-export const getPatients = createAsyncThunk("getPatients", async () => {
-  try {
-    const res = await axios.get(`${baseUrl}patients`);
-    return res.data;
-  } catch (error) {
-    return {
-      error: error?.response?.data?.error,
-    };
-  }
-});
+);
 
 export const getWaitingList = createAsyncThunk(
   "/patients/getWaitingList",
-  async () => {
+  async (_, thunkApi) => {
     try {
-      const res = await axios.get(`${baseUrl}/patients/waiting`);
-      return res.data;
+      thunkApi.dispatch(showLoader());
+      const { data } = await axios.get(`${baseUrl}/patients/waiting`);
+      return data;
     } catch (error) {
-      return {
-        error: error?.response?.data?.error,
-      };
+      thunkApi.dispatch(hideLoader());
+      return thunkApi.rejectWithValue(error?.response?.data);
+    } finally {
+      thunkApi.dispatch(hideLoader());
     }
   }
 );
@@ -90,77 +87,62 @@ export const patientSlice = createSlice({
   name: "patients",
   initialState: {
     loading: false,
-    error: "",
+    error: null,
     patient: {},
     patients: [],
-    waitingPatients: [],
+    waitingList: [],
   },
   reducers: {
-    assignPatientToRoom: (state, action) => {
-      state.waitingPatients = state.waitingPatients.filter(
-        (p) => p.patient_id !== action.id
+    removePatient: (state, action) => {
+      state.waitingList = state.waitingList.filter(
+        (p) => p.patient_id !== action?.id
       );
-    },
-    clearError: (state) => {
-      state.error = "";
     },
   },
   extraReducers: {
-    [createPatient.pending]: (state) => {
-      state.loading = true;
-    },
-    [createPatient.fulfilled]: (state, action) => {
-      state.loading = false;
-      state.waitingPatients = [
-        ...state.waitingPatients,
-        action?.payload?.patient,
-      ];
-    },
-    [createPatient.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action?.payload?.error;
-    },
+    // [postPatient.pending]: (state) => {
+    //   state.loading = true;
+    // },
+    // [postPatient.fulfilled]: (state, action) => {
+    //   state.loading = false;
+    //   state.waitingList = [...state.waitingList, action?.payload?.patient];
+    // },
+    // [postPatient.rejected]: (state, action) => {
+    //   state.loading = false;
+    //   state.error = action?.payload?.error;
+    // },
 
-    [getPatients.pending]: (state) => {
-      state.loading = true;
-    },
-    [getPatients.fulfilled]: (state, action) => {
-      state.loading = false;
-      state.patients = action?.payload?.patients;
-    },
-    [getPatients.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action?.payload?.error;
-    },
+    // [getPatients.pending]: (state) => {
+    //   state.loading = true;
+    // },
+    // [getPatients.fulfilled]: (state, action) => {
+    //   state.loading = false;
+    //   state.patients = action?.payload?.patients;
+    // },
+    // [getPatients.rejected]: (state, action) => {
+    //   state.loading = false;
+    //   state.error = action?.payload?.error;
+    // },
 
-    [getWaitingList.pending]: (state) => {
-      state.loading = true;
-    },
     [getWaitingList.fulfilled]: (state, action) => {
-      state.loading = false;
-      console.log("action?.payload :>> ", action?.payload);
-      // state.waitingPatients = action?.payload?.rooms;
-    },
-    [getWaitingList.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action?.payload?.error;
+      state.waitingList = action?.payload?.waitingList;
     },
 
-    [readPatient.pending]: (state) => {
-      state.loading = true;
-    },
-    [readPatient.fulfilled]: (state, action) => {
-      state.loading = false;
+    // [getPatient.pending]: (state) => {
+    //   state.loading = true;
+    // },
+    // [getPatient.fulfilled]: (state, action) => {
+    //   state.loading = false;
 
-      state.patient = action?.payload?.patient;
-    },
-    [readPatient.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action?.payload?.error;
-    },
+    //   state.patient = action?.payload?.patient;
+    // },
+    // [getPatient.rejected]: (state, action) => {
+    //   state.loading = false;
+    //   state.error = action?.payload?.error;
+    // },
   },
 });
 
-export const { clearError } = patientSlice.actions;
+export const { removePatient } = patientSlice.actions;
 export const patientState = (state) => state.patients;
 export default patientSlice.reducer;

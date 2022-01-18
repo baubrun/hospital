@@ -2,44 +2,48 @@ import axios from "axios";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import _ from "lodash";
 import baseUrl from "./util";
+import { hideLoader, showLoader } from "./layoutSlice";
 
-export const listRooms = createAsyncThunk("api/rooms/list", async () => {
-  try {
-    const res = await axios.get(`${baseUrl}/rooms`);
-    return res.data;
-  } catch (error) {
-    return {
-      error: error.response.data.error,
-    };
-  }
-});
-
-export const roomAdmission = createAsyncThunk(
-  "api/rooms/room_id/admission",
-  async (data) => {
+export const getRooms = createAsyncThunk(
+  "api/getRooms",
+  async (_, thunkApi) => {
     try {
-      const res = await axios.post(
-        `${baseUrl}/rooms/${data.room_number}/admission`,
-        data
-      );
-      return res?.data;
+      thunkApi.dispatch(showLoader());
+      const { data } = await axios.get(`${baseUrl}/rooms`);
+      return data;
     } catch (error) {
-      return {
-        error: error?.response?.data.error,
-      };
+      thunkApi.dispatch(hideLoader());
+      return thunkApi.rejectWithValue(error?.response?.data);
+    } finally {
+      thunkApi.dispatch(hideLoader());
     }
   }
 );
 
-export const roomDischarge = createAsyncThunk(
-  "api/rooms/room_id/discharge",
+export const occupyRoom = createAsyncThunk(
+  "api/rooms/occupy",
+  async (roomData, thunkApi) => {
+    try {
+      thunkApi.dispatch(showLoader());
+      const { data } = await axios.post(`${baseUrl}/rooms/occupy`, roomData);
+      return data;
+    } catch (error) {
+      thunkApi.dispatch(hideLoader());
+      return thunkApi.rejectWithValue(error?.response?.data);
+    } finally {
+      thunkApi.dispatch(hideLoader());
+    }
+  }
+);
+
+export const vacateRoom = createAsyncThunk(
+  "api/rooms/vacate",
   async (room_id) => {
     try {
-      const res = await axios.post(
-        `${baseUrl}/rooms/${room_id}/discharge`,
-        null
-      );
-      return res.data;
+      const { data } = await axios.post(`${baseUrl}/rooms/vacate`, {
+        room_id,
+      });
+      return data;
     } catch (error) {
       return {
         error: error?.response?.data?.error,
@@ -58,32 +62,25 @@ export const roomSlice = createSlice({
   },
   reducers: {},
   extraReducers: {
-    [roomAdmission.pending]: (state) => {
+    [occupyRoom.pending]: (state) => {
       state.loading = true;
     },
-    [roomAdmission.fulfilled]: (state, action) => {
+    [occupyRoom.fulfilled]: (state, action) => {
       state.loading = false;
-      const { error, room } = action?.payload;
-      if (error) {
-        state.error = error;
-      } else {
-        const found = state?.rooms.findIndex(
-          (r) => r?.room_number === room.room_number
-        );
-        const updatedRooms = _.cloneDeep(state?.rooms);
-        updatedRooms[found] = room;
-        state.rooms = updatedRooms;
-      }
+      const { room } = action?.payload;
+      const found = state?.rooms.findIndex(
+        (r) => r?.room_number === room.room_number
+      );
+      const updatedRooms = _.cloneDeep(state?.rooms);
+      updatedRooms[found] = room;
+      state.rooms = updatedRooms;
     },
-    [roomAdmission.rejected]: (state, action) => {
+    [occupyRoom.rejected]: (state, action) => {
       state.loading = false;
       state.error = action?.payload?.error;
     },
 
-    [roomDischarge.pending]: (state) => {
-      state.loading = true;
-    },
-    [roomDischarge.fulfilled]: (state, action) => {
+    [vacateRoom.fulfilled]: (state, action) => {
       state.loading = false;
       const { error } = action?.payload;
       if (error) {
@@ -91,29 +88,11 @@ export const roomSlice = createSlice({
       } else {
       }
     },
-    [roomDischarge.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action?.payload?.error;
-    },
 
-    [listRooms.pending]: (state) => {
-      state.loading = true;
-    },
-    [listRooms.fulfilled]: (state, action) => {
-      state.loading = false;
-      const { error, rooms } = action?.payload;
-      if (error) {
-        state.error = error;
-      } else {
-        state.rooms = rooms.sort((a, b) => {
-          return a?.room_number - b?.room_number;
-        });
-      }
-    },
-    [listRooms.rejected]: (state, action) => {
-      console.log("action :>> ", action);
-      state.loading = false;
-      state.error = action?.payload?.error;
+    [getRooms.fulfilled]: (state, action) => {
+      state.rooms = action?.payload?.rooms?.sort((a, b) => {
+        return a?.room_number - b?.room_number;
+      });
     },
   },
 });

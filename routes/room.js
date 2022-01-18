@@ -6,6 +6,6 @@ router.route("/").get(roomController.getRooms);
 
 router.route("/occupy").post(roomController.occupyRoom);
 
-// router.route("/api/rooms/:room_id/discharge").post(roomController.discharge);
+router.route("/vacate").post(roomController.vacateRoom);
 
 module.exports = router;

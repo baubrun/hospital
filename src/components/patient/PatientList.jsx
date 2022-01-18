@@ -27,7 +27,7 @@ const PatientList = (props) => {
           textTransform: "uppercase",
         }}
       >
-        <Typography variant="h5">No patients.</Typography>
+        <Typography variant="h5">NONE</Typography>
       </Box>
     );
   }

@@ -7,24 +7,38 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import Tooltip from "@mui/material/Tooltip";
-
-import { roomState, listRooms } from "../../redux/roomSlice";
+import { roomState, getRooms } from "../../redux/roomSlice";
 import TitleBar from "../TitleBar/TitleBar";
+import { showToaster } from "../../redux/layoutSlice";
+import { STATUS_ERROR } from "../../shared/constants/status";
 
 const Rooms = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { rooms } = useSelector(roomState);
 
+  const fetchRooms = async () => {
+    try {
+      dispatch(getRooms());
+    } catch (error) {
+      dispatch(
+        showToaster({
+          message: error?.message,
+          status: STATUS_ERROR,
+        })
+      );
+    }
+  };
+
   useEffect(() => {
-    dispatch(listRooms());
+    fetchRooms();
   }, []);
 
   const isRoomOccupied = (status) => (status ? "#c51162" : "none");
 
   return (
     <>
-      <TitleBar text="Room Occupancy" />
+      <TitleBar text="rooms" />
       <Paper sx={{ margin: 3 }} elevation={15}>
         <Grid container direction="row" justify="center" alignItems="center">
           <Grid item xs={4}>
@@ -46,7 +60,7 @@ const Rooms = () => {
               </Grid>
 
               {rooms
-                .filter((r) => r.room_number % 2 === 1)
+                ?.filter((r) => r?.room_number % 2 === 1)
                 .map((room, idx) => {
                   return (
                     <Tooltip
@@ -65,7 +79,7 @@ const Rooms = () => {
 
                         <Circle
                           style={{ padding: "0px !important" }}
-                          fill={{ color: isRoomOccupied(room.occupied) }}
+                          fill={{ color: isRoomOccupied(room?.occupied) }}
                           stroke={{ color: "#b256c2" }}
                           strokeWidth={5}
                           r={20}
@@ -97,14 +111,14 @@ const Rooms = () => {
               </Typography>
             </Grid>
             {rooms
-              .filter((r) => r.room_number % 2 === 0)
+              ?.filter((r) => r?.room_number % 2 === 0)
               .map((room, idx) => {
                 return (
                   <Tooltip
                     key={idx}
                     title={
-                      room.occupied
-                        ? `${room.first_name} ${room.last_name}`
+                      room?.occupied
+                        ? `${room?.first_name} ${room?.last_name}`
                         : "VACANT"
                     }
                     placement="bottom-end"
@@ -116,12 +130,12 @@ const Rooms = () => {
                           textAlign: "center",
                         }}
                       >
-                        {room.room_number}
+                        {room?.room_number}
                       </Typography>
 
                       <Circle
                         style={{ padding: "0px !important" }}
-                        fill={{ color: isRoomOccupied(room.occupied) }}
+                        fill={{ color: isRoomOccupied(room?.occupied) }}
                         stroke={{ color: "#b256c2" }}
                         strokeWidth={5}
                         r={20}

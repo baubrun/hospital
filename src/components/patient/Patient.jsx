@@ -30,10 +30,13 @@ const Patient = (props) => {
   return (
     <Card
       raised
-      sx={{
-        width: "60%",
-        margin: "auto",
-      }}
+      sx={
+        {
+          // width: "60%",
+          // margin: "auto",
+        }
+      }
+      elevation={10}
     >
       <CardContent>
         <Grid

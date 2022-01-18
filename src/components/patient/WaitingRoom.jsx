@@ -13,23 +13,28 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 
-import { patientState, getWaitingList } from "../../redux/patientSlice";
-import { roomState, roomAdmission } from "../../redux/roomSlice";
-
-import PatientList from "../../components/patient/PaitentList";
+import {
+  patientState,
+  getWaitingList,
+  removePatient,
+} from "../../redux/patientSlice";
+import { roomState, occupyRoom } from "../../redux/roomSlice";
+import PatientList from "./PatientList";
 import MaxHeap from "../../utils/heap/maxHeap";
+import { showToaster } from "../../redux/layoutSlice";
+import { STATUS_ERROR } from "../../shared/constants/status";
 
 const WaitingRoom = () => {
   const dispatch = useDispatch();
   const { rooms } = useSelector(roomState);
-  const { waitingPatients } = useSelector(patientState);
+  const { waitingList } = useSelector(patientState);
   const [patients, setPatients] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState({});
   const [viewOccupancy, setViewOccupancy] = useState(false);
   const [values, setValues] = useState({
     patient_id: null,
-    roomAssigned: "",
+    roomAssigned: null,
   });
 
   const mh = new MaxHeap();
@@ -37,25 +42,32 @@ const WaitingRoom = () => {
   const getNextPatient = () => {
     const nextPatient = mh.poll();
     setSelectedId(nextPatient?.patient_id);
-    setValues({ ...values, patient_id: nextPatient.patient_id });
+    setValues((prev) => ({ ...prev, patient_id: nextPatient.patient_id }));
   };
 
+  const fetchWaitingList = async () => {
+    try {
+      dispatch(getWaitingList());
+    } catch (error) {
+      dispatch(
+        showToaster({
+          message: error?.message,
+          status: STATUS_ERROR,
+        })
+      );
+    }
+  };
+
+  const fetchRoomAdmission = async (data) => {};
+
   useEffect(() => {
-    dispatch(getWaitingList());
+    fetchWaitingList();
   }, []);
 
   useEffect(() => {
-    setPatients(waitingPatients);
-    if (waitingPatients) {
-      mh.add(waitingPatients);
-    }
-  }, [waitingPatients]);
-
-  // useEffect(() => {
-  //   if (waitingPatients) {
-  //     mh.add(waitingPatients);
-  //   }
-  // },[]);
+    setPatients(waitingList);
+    mh.add(waitingList);
+  }, [waitingList]);
 
   useEffect(() => {
     if (selectedId) {
@@ -72,15 +84,24 @@ const WaitingRoom = () => {
   const handleSubmit = (evt) => {
     evt.preventDefault();
 
-    const data = {
+    const roomData = {
       room_number: values?.roomAssigned,
-      occupied: true,
       occupant_id: values?.patient_id,
     };
-    dispatch(roomAdmission(data));
-    setSelectedId(null);
-    setValues({ patient_id: null, roomAssigned: "" });
-    dispatch(getWaitingList());
+
+    try {
+      dispatch(occupyRoom(roomData));
+      setSelectedId(null);
+      dispatch(removePatient({ id: values?.patient_id }));
+      setValues({ patient_id: null, roomAssigned: null });
+    } catch (error) {
+      dispatch(
+        showToaster({
+          message: error?.message,
+          status: STATUS_ERROR,
+        })
+      );
+    }
   };
 
   return (
@@ -94,20 +115,20 @@ const WaitingRoom = () => {
           justifyContent="space-evenly"
           alignItems="center"
         >
-          <Grid item>
+          {/* <Grid item>
             <Button
               color="secondary"
               size="large"
               variant="contained"
-              onClick={() => setViewOccupancy(!viewOccupancy)}
+              onClick={() => setViewOccupancy((prev) => !prev)}
               sx={{
                 textTransform: "uppercase",
                 margin: 2,
               }}
             >
-              view Occupancies
+              view rooms
             </Button>
-          </Grid>
+          </Grid> */}
 
           <Grid item>
             <Typography
@@ -116,20 +137,20 @@ const WaitingRoom = () => {
                 textTransform: "uppercase",
               }}
             >
-              assign patient to room:
+              admit patient:
             </Typography>
           </Grid>
 
           <Grid item>
             <FormControl variant="outlined" sx={{ minWidth: 250 }}>
               <InputLabel id="select" sx={{ textTransform: "uppercase" }}>
-                room
+                room #
               </InputLabel>
               <Select
                 sx={{ minWidth: 250 }}
                 labelId="select"
                 id="select"
-                value={values?.roomAssigned}
+                value={values?.roomAssigned || ""}
                 onChange={(evt) => handleRoom(evt)}
                 label="Rooms"
               >
@@ -159,42 +180,60 @@ const WaitingRoom = () => {
             </Button>
           </Grid>
         </Grid>
+      </form>
+
+      <Grid
+        container
+        direction="row"
+        alignItems="center"
+        sx={{ marginTop: 5 }}
+        columnSpacing={4}
+      >
+        <Grid item sx={{ ml: 2 }}>
+          <Typography
+            color="secondary.main"
+            variant="h5"
+            sx={{
+              textTransform: "uppercase",
+              textAlign: "center",
+              fontWeight: "bolder",
+            }}
+          >
+            Patients
+          </Typography>
+          <PatientList patients={patients} selectedId={selectedId} />
+        </Grid>
 
         <Grid
           container
-          direction="row"
-          justifyContent="center"
-          alignItems="center"
+          item
+          direction="column"
+          // justifyContent="center"
+          // alignItems="center"
+          xs={3}
         >
-          <Grid item xs={2}>
-            <PatientList patients={patients} selectedId={selectedId} />
+          <Grid item mb={2}>
+            <Button
+              sx={{ textTransform: "uppercase" }}
+              color="primary"
+              disabled={values?.patient_id}
+              size="large"
+              variant="contained"
+              onClick={() => getNextPatient()}
+            >
+              Next Patient
+            </Button>
           </Grid>
 
-          <Grid item xs={10}>
-            <Grid
-              container
-              direction="column"
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Grid item>
-                <Button
-                  sx={{ textTransform: "uppercase", margin: 2 }}
-                  color="primary"
-                  disabled={values?.patient_id}
-                  size="large"
-                  variant="contained"
-                  onClick={() => getNextPatient()}
-                >
-                  Next Patient
-                </Button>
-              </Grid>
-
-              <Patient patient={selectedPatient} selectedId={selectedId} />
-            </Grid>
+          <Grid item>
+            <Patient patient={selectedPatient} selectedId={selectedId} />
           </Grid>
         </Grid>
-      </form>
+
+        <Grid item xs={7}>
+          <Rooms />
+        </Grid>
+      </Grid>
 
       {/* <Modal
         sx={{ width: "80%", margin: "auto" }}
@@ -203,8 +242,6 @@ const WaitingRoom = () => {
       >
         <Rooms />
       </Modal> */}
-
-      {viewOccupancy && <Rooms />}
     </>
   );
 };
