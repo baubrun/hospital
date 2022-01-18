@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useTheme } from "@mui/material";
 import Modal from "@mui/material/Modal";
 import Grid from "@mui/material/Grid";
-import TitleBar from "../TitleBar/TitleBar";
 import Patient from "./Patient";
 import Rooms from "../../components/rooms/Rooms";
 import Button from "@mui/material/Button";
@@ -106,8 +105,6 @@ const WaitingRoom = () => {
 
   return (
     <>
-      <TitleBar text="waiting Room" />
-
       <form onSubmit={handleSubmit}>
         <Grid
           container
@@ -234,14 +231,6 @@ const WaitingRoom = () => {
           <Rooms />
         </Grid>
       </Grid>
-
-      {/* <Modal
-        sx={{ width: "80%", margin: "auto" }}
-        open={viewOccupancy}
-        onClose={() => setViewOccupancy(false)}
-      >
-        <Rooms />
-      </Modal> */}
     </>
   );
 };
