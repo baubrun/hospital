@@ -8,7 +8,7 @@ const logger = require("../middlewares/log");
  * @param {import("express").NextFunction} res
  */
 const error = (err, req, res, next) => {
-  logger.request("ErrorHandler", err.message);
+  logger.logger("ErrorHandler", err.message);
 
   return res.status(500).send("Error see logs.");
 };
