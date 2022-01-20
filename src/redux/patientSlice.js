@@ -3,20 +3,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { hideLoader, showLoader } from "./layoutSlice";
 import baseUrl from "./util";
 
-export const postPatient = createAsyncThunk(
-  "/patients/postPatient",
-  async (patient) => {
-    try {
-      const { data } = await axios.post(`${baseUrl}patients`, patient);
-      return data;
-    } catch (error) {
-      return {
-        error: error?.response?.data?.error,
-      };
-    }
-  }
-);
-
 export const getWaitingList = createAsyncThunk(
   "/patients/getWaitingList",
   async (_, thunkApi) => {
